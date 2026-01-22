@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Universal Trading Risk Calculator</title>
+<style>
+body{
+    background:#020617;
+    color:white;
+    font-family:Arial;
+    max-width:430px;
+    margin:auto;
+    padding:20px;
+}
+h2{text-align:center;color:#38bdf8}
+.card{
+    background:#0f172a;
+    padding:15px;
+    border-radius:8px;
+    margin-bottom:15px;
+}
+input,select,button{
+    width:100%;
+    padding:10px;
+    margin:6px 0;
+    border-radius:6px;
+    border:none;
+}
+button{
+    background:#22c55e;
+    font-weight:bold;
+    cursor:pointer;
+}
+.out{
+    background:black;
+    padding:10px;
+    border-radius:6px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Trading Calculator</h2>
+
+<div class="card">
+<h3>Trade Calculator</h3>
+
+<select id="market">
+    <option value="deriv">Deriv Volatility Indices</option>
+    <option value="forex">Forex Pairs</option>
+    <option value="gold">Gold (XAUUSD)</option>
+    <option value="crypto">Crypto</option>
+</select>
+
+<input id="balance" type="number" placeholder="Account Balance ($)">
+<input id="lot" type="number" step="0.01" placeholder="Lot Size">
+<input id="sl" type="number" placeholder="Stop Loss (points / pips)">
+<input id="tp" type="number" placeholder="Take Profit (points / pips)">
+
+<button onclick="calcTrade()">Calculate Trade</button>
+
+<div class="out" id="tradeOut"></div>
+</div>
+
+<div class="card">
+<h3>Auto Lot Size Calculator</h3>
+
+<input id="riskp" type="number" placeholder="Risk % (e.g. 2)">
+<input id="sl2" type="number" placeholder="Stop Loss (points / pips)">
+
+<button onclick="calcLot()">Calculate Lot</button>
+
+<div class="out" id="lotOut"></div>
+</div>
+
+<script>
+function pipValue(){
+    let m = document.getElementById("market").value;
+
+    if(m === "deriv") return 1;     // $1 per point per lot
+    if(m === "forex") return 10;    // $10 per pip per lot
+    if(m === "gold") return 10;     // $10 per 1.0 move
+    if(m === "crypto") return 1;    // approx
+}
+
+function calcTrade(){
+    let bal = +balance.value;
+    let lot = +lot.value;
+    let sl = +sl.value;
+    let tp = +tp.value;
+    let pv = pipValue();
+
+    if(bal<=0||lot<=0||sl<=0||tp<=0) return;
+
+    let risk = sl * pv * lot;
+    let profit = tp * pv * lot;
+
+    let rp = (risk/bal)*100;
+    let pp = (profit/bal)*100;
+    let rr = profit/risk;
+
+    tradeOut.innerHTML = `
+    Risk: $${risk.toFixed(2)}<br>
+    Profit: $${profit.toFixed(2)}<br>
+    Risk %: ${rp.toFixed(2)}%<br>
+    Profit %: ${pp.toFixed(2)}%<br>
+    RR Ratio: 1 : ${rr.toFixed(2)}
+    `;
+}
+
+function calcLot(){
+    let bal = +balance.value;
+    let rp = +riskp.value;
+    let sl = +sl2.value;
+    let pv = pipValue();
+
+    if(bal<=0||rp<=0||sl<=0) return;
+
+    let riskAmt = bal * (rp/100);
+    let lot = riskAmt / (sl * pv);
+
+    lotOut.innerHTML = `
+    Recommended Lot Size: <b>${lot.toFixed(2)}</b>
+    `;
+}
+</script>
+
+</body>
+</html>
